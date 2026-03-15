@@ -1,0 +1,51 @@
+pull-to-refresh {
+  position: absolute;
+  top: 90px;
+  display: block;
+  height: 96px;
+  width: 100%;
+  font-size: 30px;
+  color: #999;
+  transform-origin: 50% 100%;
+  text-align: center;
+}
+
+pull-to-refresh .p2r-spinner {
+  position: absolute;
+  top: 96px;
+  left: 0;
+  height: 96px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+pull-to-refresh .p2r-spinner::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid #ccc;
+  border-top-color: #666;
+  border-radius: 50%;
+  animation: p2r-spin 0.6s linear infinite;
+}
+
+@keyframes p2r-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+pull-to-refresh-arrow {
+  display: inline-block;
+  opacity: 1;
+  line-height: 1;
+  user-select: none;
+  top: 24px;
+}
+
+pull-to-refresh-arrow svg {
+  display: block;
+}

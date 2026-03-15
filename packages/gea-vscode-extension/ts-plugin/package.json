@@ -1,0 +1,6 @@
+{
+  "name": "gea-template-plugin",
+  "version": "0.0.0",
+  "main": "./gea-template-plugin.js",
+  "private": true
+}

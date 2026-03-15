@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/gea/tsconfig.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "tests/**/*.ts",
+    "playwright.config.ts",
+    "vite.config.ts",
+    "../../packages/vite-plugin-gea/gea-env.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

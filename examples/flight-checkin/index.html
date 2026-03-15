@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Flight Check-in - Gea</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 40px 20px;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        background: #0f1419;
+        color: #e7edf4;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      h1 {
+        font-size: 1.75rem;
+        margin-bottom: 8px;
+        color: #00d4aa;
+      }
+      p {
+        color: #8b9cad;
+        margin-bottom: 32px;
+      }
+      a {
+        display: inline-block;
+        padding: 16px 28px;
+        background: #1a2332;
+        border: 2px solid #2d3a4d;
+        border-radius: 12px;
+        color: #e7edf4;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      a:hover {
+        border-color: #00d4aa;
+        background: rgba(0, 212, 170, 0.1);
+        transform: translateY(-2px);
+      }
+      .note {
+        margin-top: 40px;
+        font-size: 0.9rem;
+        color: #6b7a8f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Flight Check-in</h1>
+    <p>Run the Gea app, then open:</p>
+    <a href="http://localhost:5182">Flight Check-in (port 5182)</a>
+    <p class="note">Run <code>npm run dev</code> from the flight-checkin directory first.</p>
+  </body>
+</html>

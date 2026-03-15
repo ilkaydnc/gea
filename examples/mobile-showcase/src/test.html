@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>3x Resolution Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      #info {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 13px;
+        line-height: 1.6;
+        z-index: 10;
+      }
+
+      #info strong {
+        color: #00d4ff;
+      }
+
+      #canvas-wrap {
+        position: absolute;
+        inset: 0;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #box {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        cursor: grab;
+        z-index: 5;
+        will-change: transform;
+        contain: layout style;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        transition: box-shadow 0.2s ease;
+      }
+
+      #box.dragging {
+        box-shadow: 0 12px 48px rgba(102, 126, 234, 0.6);
+      }
+
+      #box .label {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      #fps {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 24px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        z-index: 20;
+        min-width: 80px;
+        text-align: center;
+        color: #4ade80;
+      }
+
+      #fps small {
+        display: block;
+        font-size: 10px;
+        font-weight: 400;
+        opacity: 0.6;
+        color: #e0e0e0;
+      }
+
+      #checkerboard {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 14px 18px;
+        z-index: 10;
+      }
+
+      #checkerboard h3 {
+        font-size: 12px;
+        margin-bottom: 8px;
+        color: #00d4ff;
+      }
+
+      .pattern-row {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+      }
+
+      .pattern-item {
+        text-align: center;
+      }
+
+      .pattern-item span {
+        display: block;
+        font-size: 10px;
+        margin-top: 4px;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info">Loading…</div>
+    <div id="fps">--<small>FPS</small></div>
+
+    <div id="canvas-wrap">
+      <canvas id="grid"></canvas>
+    </div>
+
+    <div id="box">
+      <span>Drag me</span>
+      <span class="label" id="pos-label">0, 0</span>
+    </div>
+
+    <div id="checkerboard">
+      <h3>1-CSS-px patterns (should look crisp at 3x)</h3>
+      <div class="pattern-row">
+        <div class="pattern-item"><canvas id="pat1" width="0" height="0"></canvas><span>1px checker</span></div>
+        <div class="pattern-item"><canvas id="pat2" width="0" height="0"></canvas><span>1px lines</span></div>
+        <div class="pattern-item"><canvas id="pat3" width="0" height="0"></canvas><span>1px diagonal</span></div>
+      </div>
+    </div>
+
+    <script>
+      ;(function () {
+        const dpr = window.devicePixelRatio || 1
+        const screen = window.screen
+
+        document.getElementById('info').innerHTML = [
+          `<strong>Device Pixel Ratio:</strong> ${dpr}x`,
+          `<strong>Screen:</strong> ${screen.width} × ${screen.height} CSS px`,
+          `<strong>Backing:</strong> ${screen.width * dpr} × ${screen.height * dpr} physical px`,
+          `<strong>Window:</strong> ${window.innerWidth} × ${window.innerHeight} CSS px`,
+        ].join('<br>')
+
+        // --- background grid drawn at native resolution ---
+        const gridCanvas = document.getElementById('grid')
+        const gw = window.innerWidth
+        const gh = window.innerHeight
+        gridCanvas.width = gw * dpr
+        gridCanvas.height = gh * dpr
+        const gctx = gridCanvas.getContext('2d')
+        gctx.scale(dpr, dpr)
+
+        const step = 20
+        gctx.strokeStyle = 'rgba(255,255,255,0.06)'
+        gctx.lineWidth = 1
+        for (let x = 0; x <= gw; x += step) {
+          gctx.beginPath()
+          gctx.moveTo(x + 0.5, 0)
+          gctx.lineTo(x + 0.5, gh)
+          gctx.stroke()
+        }
+        for (let y = 0; y <= gh; y += step) {
+          gctx.beginPath()
+          gctx.moveTo(0, y + 0.5)
+          gctx.lineTo(gw, y + 0.5)
+          gctx.stroke()
+        }
+
+        // --- checkerboard patterns at native resolution ---
+        function drawPattern(id, drawFn, cssPx) {
+          const c = document.getElementById(id)
+          c.style.width = cssPx + 'px'
+          c.style.height = cssPx + 'px'
+          c.width = cssPx * dpr
+          c.height = cssPx * dpr
+          const ctx = c.getContext('2d')
+          drawFn(ctx, cssPx * dpr)
+        }
+
+        drawPattern(
+          'pat1',
+          (ctx, size) => {
+            for (let y = 0; y < size; y++) {
+              for (let x = 0; x < size; x++) {
+                ctx.fillStyle = (x + y) % 2 === 0 ? '#fff' : '#000'
+                ctx.fillRect(x, y, 1, 1)
+              }
+            }
+          },
+          60,
+        )
+
+        drawPattern(
+          'pat2',
+          (ctx, size) => {
+            ctx.fillStyle = '#000'
+            ctx.fillRect(0, 0, size, size)
+            ctx.fillStyle = '#fff'
+            for (let x = 0; x < size; x += 2) {
+              ctx.fillRect(x, 0, 1, size)
+            }
+          },
+          60,
+        )
+
+        drawPattern(
+          'pat3',
+          (ctx, size) => {
+            ctx.fillStyle = '#000'
+            ctx.fillRect(0, 0, size, size)
+            ctx.strokeStyle = '#fff'
+            ctx.lineWidth = 1
+            for (let i = -size; i < size * 2; i += 3) {
+              ctx.beginPath()
+              ctx.moveTo(i, 0)
+              ctx.lineTo(i + size, size)
+              ctx.stroke()
+            }
+          },
+          60,
+        )
+
+        // --- FPS counter ---
+        const fpsEl = document.getElementById('fps')
+        let frameCount = 0
+        let lastFpsTime = performance.now()
+
+        function fpsLoop(now) {
+          frameCount++
+          const delta = now - lastFpsTime
+          if (delta >= 500) {
+            const fps = Math.round((frameCount / delta) * 1000)
+            fpsEl.firstChild.textContent = fps
+            if (fps >= 110) fpsEl.style.color = '#4ade80'
+            else if (fps >= 55) fpsEl.style.color = '#facc15'
+            else fpsEl.style.color = '#f87171'
+            frameCount = 0
+            lastFpsTime = now
+          }
+          requestAnimationFrame(fpsLoop)
+        }
+        requestAnimationFrame(fpsLoop)
+
+        // --- draggable box (GPU-composited via translate3d) ---
+        const box = document.getElementById('box')
+        const posLabel = document.getElementById('pos-label')
+        let dragging = false
+        let offsetX = 0,
+          offsetY = 0
+        let boxX = 0,
+          boxY = 0
+        let pendingX = 0,
+          pendingY = 0
+        let rafId = 0
+
+        // center box initially
+        boxX = (window.innerWidth - 120) / 2
+        boxY = (window.innerHeight - 120) / 2
+        box.style.transform = `translate3d(${boxX}px, ${boxY}px, 0)`
+
+        function commitPosition() {
+          rafId = 0
+          boxX = pendingX
+          boxY = pendingY
+          box.style.transform = `translate3d(${boxX}px, ${boxY}px, 0)`
+          posLabel.textContent = `${Math.round(boxX)}, ${Math.round(boxY)}`
+        }
+
+        function scheduleMove(x, y) {
+          pendingX = x
+          pendingY = y
+          if (!rafId) rafId = requestAnimationFrame(commitPosition)
+        }
+
+        function startDrag(clientX, clientY) {
+          offsetX = clientX - boxX
+          offsetY = clientY - boxY
+          dragging = true
+          box.classList.add('dragging')
+        }
+
+        function moveDrag(clientX, clientY) {
+          if (!dragging) return
+          scheduleMove(clientX - offsetX, clientY - offsetY)
+        }
+
+        function endDrag() {
+          if (!dragging) return
+          dragging = false
+          box.classList.remove('dragging')
+          if (rafId) {
+            cancelAnimationFrame(rafId)
+            rafId = 0
+          }
+          commitPosition()
+        }
+
+        box.addEventListener(
+          'touchstart',
+          (e) => {
+            e.preventDefault()
+            const t = e.touches[0]
+            startDrag(t.clientX, t.clientY)
+          },
+          { passive: false },
+        )
+
+        box.addEventListener('mousedown', (e) => {
+          startDrag(e.clientX, e.clientY)
+        })
+
+        document.addEventListener(
+          'touchmove',
+          (e) => {
+            if (!dragging) return
+            e.preventDefault()
+            const t = e.touches[0]
+            moveDrag(t.clientX, t.clientY)
+          },
+          { passive: false },
+        )
+
+        document.addEventListener('mousemove', (e) => {
+          moveDrag(e.clientX, e.clientY)
+        })
+
+        document.addEventListener('touchend', endDrag)
+        document.addEventListener('touchcancel', endDrag)
+        document.addEventListener('mouseup', endDrag)
+      })()
+    </script>
+  </body>
+</html>
