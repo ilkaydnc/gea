@@ -1,0 +1,280 @@
+/*
+ * Gea docs — synthwave theme overrides
+ * Palette sourced from the landing page:
+ *   cyan #00e5ff  magenta #e91eff  deep-purple #0a0a1a  space #0d0d24
+ */
+
+:root {
+  --vp-c-brand-1: #00e5ff;
+  --vp-c-brand-2: #33ebff;
+  --vp-c-brand-3: #00cce6;
+  --vp-c-brand-soft: rgba(0, 229, 255, 0.12);
+
+  --vp-font-family-base: 'Exo 2', sans-serif;
+  --vp-font-family-mono: 'IBM Plex Mono', monospace;
+}
+
+.dark {
+  --vp-c-bg: #0a0a1a;
+  --vp-c-bg-alt: #0d0d24;
+  --vp-c-bg-elv: #12122a;
+  --vp-c-bg-soft: #161633;
+
+  --vp-c-text-1: #e0dff5;
+  --vp-c-text-2: #aaaacc;
+  --vp-c-text-3: #8888aa;
+
+  --vp-c-divider: rgba(0, 229, 255, 0.08);
+  --vp-c-gutter: rgba(0, 229, 255, 0.06);
+
+  --vp-c-brand-1: #00e5ff;
+  --vp-c-brand-2: #33ebff;
+  --vp-c-brand-3: #00cce6;
+  --vp-c-brand-soft: rgba(0, 229, 255, 0.12);
+
+  --vp-code-block-bg: rgba(13, 13, 36, 0.9);
+
+  --vp-c-default-1: #e0dff5;
+  --vp-c-default-2: #aaaacc;
+  --vp-c-default-3: #8888aa;
+  --vp-c-default-soft: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Headings ── */
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3,
+.VPHero .name,
+.VPHero .text {
+  font-family: 'Audiowide', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.VPHero .name .clip {
+  background: linear-gradient(135deg, #00e5ff, #e91eff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.VPHero .tagline {
+  font-family: 'Exo 2', sans-serif;
+  color: var(--vp-c-text-2);
+}
+
+/* ── Hero image ── */
+.VPHero .image-container .image-bg {
+  display: none;
+}
+
+.VPHero .image-container {
+  max-width: 500px !important;
+  max-height: 350px !important;
+}
+
+.VPHero .image-container img {
+  max-width: 500px !important;
+  max-height: 350px !important;
+  border-radius: 12px;
+}
+
+@media (min-width: 960px) {
+  .VPHero .image-container {
+    max-width: 550px !important;
+    max-height: 400px !important;
+  }
+
+  .VPHero .image-container img {
+    max-width: 550px !important;
+    max-height: 400px !important;
+  }
+}
+
+/* ── Nav brand ── */
+.VPNavBarTitle .title {
+  font-family: 'Audiowide', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  background: linear-gradient(135deg, #00e5ff, #e91eff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.VPNavBarTitle .logo {
+  height: 40px !important;
+  width: auto !important;
+}
+
+.dark .VPNav .divider,
+.dark .curtain {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* ── Sidebar ── */
+.dark .VPSidebar {
+  background-color: rgba(10, 10, 26, 0.4) !important;
+}
+
+.VPSidebar .group .title {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Active sidebar link glow ── */
+.dark .VPSidebarItem.is-active > .item .link > .text {
+  color: #00e5ff;
+}
+
+/* ── Hero action buttons ── */
+.VPHero .actions .VPButton.brand {
+  background: linear-gradient(135deg, #00e5ff, #e91eff);
+  border: none;
+  color: #0a0a1a;
+  font-family: 'Audiowide', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition:
+    box-shadow 0.3s,
+    transform 0.3s;
+}
+
+.VPHero .actions .VPButton.brand:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 30px rgba(0, 229, 255, 0.35),
+    0 0 60px rgba(233, 30, 255, 0.15);
+}
+
+.VPHero .actions .VPButton.alt {
+  border-color: rgba(255, 255, 255, 0.15);
+  font-family: 'Audiowide', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition:
+    border-color 0.3s,
+    color 0.3s,
+    box-shadow 0.3s,
+    transform 0.3s;
+}
+
+.VPHero .actions .VPButton.alt:hover {
+  border-color: #e91eff;
+  color: #e91eff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(233, 30, 255, 0.3);
+}
+
+/* ── Code blocks ── */
+.dark .vp-code-group .tabs label.active {
+  color: #00e5ff;
+}
+
+.dark div[class*='language-'] > button.copy {
+  border-color: rgba(0, 229, 255, 0.15);
+}
+
+.dark div[class*='language-'] > button.copy:hover {
+  border-color: #00e5ff;
+}
+
+/* ── Inline code ── */
+.dark .vp-doc :not(pre) > code {
+  background-color: rgba(0, 229, 255, 0.08);
+  color: #00e5ff;
+}
+
+/* ── Links ── */
+.dark .vp-doc a {
+  color: #00e5ff;
+}
+
+.dark .vp-doc a:hover {
+  color: #33ebff;
+  text-decoration-color: #e91eff;
+}
+
+/* ── Tables ── */
+.dark .vp-doc table {
+  border-color: rgba(0, 229, 255, 0.08);
+}
+
+.dark .vp-doc tr {
+  border-color: rgba(0, 229, 255, 0.06);
+}
+
+.dark .vp-doc th {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #00e5ff;
+}
+
+/* ── Footer ── */
+.VPFooter {
+  border-top-color: rgba(0, 229, 255, 0.06) !important;
+}
+
+/* ── Scrollbar ── */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0a0a1a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.15);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.3);
+}
+
+/* ── Search button ── */
+.dark .VPNavBarSearch .DocSearch-Button,
+.dark .VPNavBarSearchButton {
+  min-width: 300px !important;
+  justify-content: flex-start !important;
+}
+
+.dark .VPNavBarSearch .DocSearch-Button .DocSearch-Button-Keys,
+.dark .VPNavBarSearchButton .vp-shortcut {
+  margin-left: auto !important;
+}
+
+/* ── Search modal ── */
+.dark .DocSearch-Modal {
+  --docsearch-modal-background: #0d0d24;
+  --docsearch-searchbox-background: #12122a;
+  --docsearch-hit-background: #161633;
+}
+
+/* ── Starfield ── */
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stars canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.VPNav,
+.VPSidebar,
+.VPContent,
+.VPFooter,
+.VPLocalNav {
+  position: relative;
+  z-index: 1;
+}

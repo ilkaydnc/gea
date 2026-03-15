@@ -1,0 +1,5 @@
+{
+  "extends": "../gea/tsconfig.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["dist", "node_modules"]
+}

@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/gea-vscode-extension"],
+      "outFiles": ["${workspaceFolder}/packages/gea-vscode-extension/out/**/*.js"],
+      "preLaunchTask": {
+        "type": "npm",
+        "script": "compile",
+        "path": "packages/gea-vscode-extension",
+        "isBackground": false
+      }
+    },
+    {
+      "name": "Attach to Extension Host",
+      "type": "extensionHost",
+      "request": "attach",
+      "port": 6009
+    }
+  ]
+}

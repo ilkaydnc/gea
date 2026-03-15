@@ -1,0 +1,493 @@
+# API Reference
+
+## Store
+
+### Import
+
+```ts
+import { Store } from 'gea'
+```
+
+### Creating a Store
+
+Extend `Store`, declare reactive properties as class fields, add methods that mutate them, and export a singleton instance.
+
+```ts
+import { Store } from 'gea'
+
+class TodoStore extends Store {
+  todos: Todo[] = []
+  filter: 'all' | 'active' | 'completed' = 'all'
+  draft = ''
+
+  add(text?: string): void {
+    const t = (text ?? this.draft).trim()
+    if (!t) return
+    this.draft = ''
+    this.todos.push({ id: uid(), text: t, done: false })
+  }
+
+  toggle(id: string): void {
+    const todo = this.todos.find(t => t.id === id)
+    if (todo) todo.done = !todo.done
+  }
+
+  remove(id: string): void {
+    this.todos = this.todos.filter(t => t.id !== id)
+  }
+
+  setFilter(filter: 'all' | 'active' | 'completed'): void {
+    this.filter = filter
+  }
+
+  get filteredTodos(): Todo[] {
+    const { todos, filter } = this
+    if (filter === 'active') return todos.filter(t => !t.done)
+    if (filter === 'completed') return todos.filter(t => t.done)
+    return todos
+  }
+
+  get activeCount(): number {
+    return this.todos.filter(t => !t.done).length
+  }
+}
+
+export default new TodoStore()
+```
+
+### Reactivity
+
+The store instance is wrapped in a deep `Proxy`. Any mutation — direct assignment, nested property change, or array method call — is automatically tracked and batched.
+
+```ts
+this.count++
+this.user.name = 'Alice'
+this.todos.push({ id: '1', text: 'New', done: false })
+this.items.splice(2, 1)
+this.items.sort((a, b) => a.order - b.order)
+this.todos = this.todos.filter(t => !t.done)
+```
+
+Changes are batched via `queueMicrotask`.
+
+### observe(path, handler)
+
+```ts
+const unsubscribe = store.observe([], (value, changes) => {
+  console.log('State changed:', changes)
+})
+
+store.observe('todos', (value, changes) => {
+  console.log('Todos changed:', value)
+})
+
+store.observe('user.profile.name', (value, changes) => {
+  console.log('Name changed to:', value)
+})
+
+unsubscribe()
+```
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `path` | `string \| string[]` | Dot-separated path or array of path parts. Empty string/array observes all changes. |
+| `handler` | `(value: any, changes: StoreChange[]) => void` | Called with the current value and the batch of changes. |
+
+**Returns:** `() => void` — call to unsubscribe.
+
+### StoreChange
+
+```ts
+interface StoreChange {
+  type: 'add' | 'update' | 'delete' | 'append' | 'reorder' | 'swap'
+  property: string
+  target: any
+  pathParts: string[]
+  newValue?: any
+  previousValue?: any
+  start?: number
+  count?: number
+  permutation?: number[]
+  arrayIndex?: number
+  leafPathParts?: string[]
+  isArrayItemPropUpdate?: boolean
+  otherIndex?: number
+}
+```
+
+### Intercepted Array Methods
+
+| Method | Change type |
+| --- | --- |
+| `push(...items)` | `append` |
+| `pop()` | `delete` |
+| `shift()` | `delete` |
+| `unshift(...items)` | `add` (per item) |
+| `splice(start, deleteCount, ...items)` | `delete` + `add` (or `append`) |
+| `sort(compareFn?)` | `reorder` with permutation |
+| `reverse()` | `reorder` with permutation |
+
+Iterator methods (`map`, `filter`, `find`, `findIndex`, `forEach`, `some`, `every`, `reduce`, `indexOf`, `includes`) are intercepted to provide proxied items with correct paths.
+
+---
+
+## Component
+
+### Import
+
+```ts
+import { Component } from 'gea'
+```
+
+### Class Component
+
+```jsx
+import { Component } from 'gea'
+import counterStore from './counter-store'
+
+export default class Counter extends Component {
+  template() {
+    return (
+      <div class="counter">
+        <span>{counterStore.count}</span>
+        <button click={counterStore.increment}>+</button>
+        <button click={counterStore.decrement}>-</button>
+      </div>
+    )
+  }
+}
+```
+
+### Lifecycle
+
+| Method | When called |
+| --- | --- |
+| `created(props)` | After constructor, before render |
+| `onAfterRender()` | After DOM insertion and child mounting |
+| `onAfterRenderAsync()` | Next `requestAnimationFrame` after render |
+| `dispose()` | Removes from DOM, cleans up observers and children |
+
+### Properties
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Unique component identifier (auto-generated) |
+| `el` | `HTMLElement` | Root DOM element (created lazily from `template()`) |
+| `props` | `any` | Properties passed to the component |
+| `rendered` | `boolean` | Whether the component has been rendered |
+
+### DOM Helpers
+
+| Method | Description |
+| --- | --- |
+| `$(selector)` | First matching descendant (scoped `querySelector`) |
+| `$$(selector)` | All matching descendants (scoped `querySelectorAll`) |
+
+### Rendering
+
+```ts
+const app = new MyApp()
+app.render(document.getElementById('app'))
+```
+
+`render(rootEl, index?)` inserts the component's DOM element into the given parent. Components render once; subsequent state changes trigger surgical DOM patches.
+
+### events Getter
+
+Generated by the Vite plugin for event delegation. Maps event types to selector-handler pairs:
+
+```ts
+get events() {
+  return {
+    click: {
+      '.btn-add': this.addItem,
+      '.btn-remove': this.removeItem
+    },
+    change: {
+      '.checkbox': this.toggle
+    }
+  }
+}
+```
+
+---
+
+## Function Components
+
+```jsx
+export default function TodoInput({ draft, onDraftChange, onAdd }) {
+  const handleKeyDown = e => {
+    if (e.key === 'Enter') onAdd()
+  }
+
+  return (
+    <div class="todo-input-wrap">
+      <input
+        type="text"
+        placeholder="What needs to be done?"
+        value={draft}
+        input={onDraftChange}
+        keydown={handleKeyDown}
+      />
+      <button click={onAdd}>Add</button>
+    </div>
+  )
+}
+```
+
+Function components are converted to class components at build time by the Vite plugin.
+
+---
+
+## JSX Syntax
+
+### Attributes
+
+| Gea | HTML equivalent | Notes |
+| --- | --- | --- |
+| `class="foo"` | `class="foo"` | Use `class`, not `className` |
+| `` class={`btn ${active ? 'on' : ''}`} `` | Dynamic class | Template literal |
+| `value={text}` | `value="..."` | For inputs |
+| `checked={bool}` | `checked` | For checkboxes |
+| `disabled={bool}` | `disabled` | For buttons/inputs |
+| `aria-label="Close"` | `aria-label="Close"` | ARIA pass-through |
+
+### Event Attributes
+
+```jsx
+<button click={handleClick}>Click</button>
+<input input={handleInput} />
+<input change={handleChange} />
+<input keydown={handleKeyDown} />
+<input blur={handleBlur} />
+<input focus={handleFocus} />
+<span dblclick={handleDoubleClick}>Text</span>
+<form submit={handleSubmit}>...</form>
+```
+
+Both native-style (`click`, `change`) and React-style (`onClick`, `onChange`) names are supported.
+
+Supported: `click`, `dblclick`, `input`, `change`, `keydown`, `keyup`, `blur`, `focus`, `mousedown`, `mouseup`, `submit`, `dragstart`, `dragend`, `dragover`, `dragleave`, `drop`.
+
+With `gea-mobile`: `tap`, `longTap`, `swipeRight`, `swipeUp`, `swipeLeft`, `swipeDown`.
+
+### Text Interpolation
+
+```jsx
+<span>{count}</span>
+<span>{user.name}</span>
+<span>{activeCount} {activeCount === 1 ? 'item' : 'items'} left</span>
+```
+
+---
+
+## Conditional Rendering
+
+```jsx
+{step === 1 && <StepOne onContinue={() => store.setStep(2)} />}
+{!paymentComplete ? <PaymentForm /> : <div class="success">Done</div>}
+```
+
+Compiled into `<template>` markers with swap logic.
+
+---
+
+## List Rendering
+
+```jsx
+<ul>
+  {todos.map(todo => (
+    <TodoItem key={todo.id} todo={todo} onToggle={() => store.toggle(todo.id)} />
+  ))}
+</ul>
+```
+
+The `key` prop is required. Gea uses `applyListChanges` for efficient add, delete, append, reorder, and swap operations.
+
+---
+
+## Router
+
+### Import
+
+```ts
+import { router, Router, RouterView, Link, matchRoute } from 'gea'
+import type { RouteConfig, RouteMatch, RouteParams, RouteComponent } from 'gea'
+```
+
+### `router` (Singleton)
+
+The `router` singleton is a `Store` that tracks the current URL state. Its properties are reactive.
+
+#### Properties
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Current pathname (e.g. `'/users/42'`) |
+| `hash` | `string` | Current hash (e.g. `'#section'`) |
+| `search` | `string` | Current search string (e.g. `'?q=hello&page=2'`) |
+| `query` | `Record<string, string>` | Parsed key-value pairs from `search` (getter) |
+
+#### Methods
+
+| Method | Description |
+| --- | --- |
+| `navigate(path)` | Push a new history entry and update `path`, `hash`, `search` |
+| `replace(path)` | Replace the current history entry (no new back-button entry) |
+| `back()` | Go back one entry (`history.back()`) |
+| `forward()` | Go forward one entry (`history.forward()`) |
+
+```ts
+router.navigate('/users/42?tab=posts#bio')
+console.log(router.path)   // '/users/42'
+console.log(router.search) // '?tab=posts'
+console.log(router.hash)   // '#bio'
+console.log(router.query)  // { tab: 'posts' }
+```
+
+### `matchRoute(pattern, path)`
+
+Pure function that tests a URL path against a route pattern and extracts named parameters.
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `pattern` | `string` | Route pattern with optional `:param` and `*` segments |
+| `path` | `string` | Actual URL pathname to match against |
+
+**Returns:** `RouteMatch | null`
+
+```ts
+interface RouteMatch {
+  path: string
+  pattern: string
+  params: Record<string, string>
+}
+```
+
+| Pattern | Matches | Params |
+| --- | --- | --- |
+| `/about` | `/about` | `{}` |
+| `/users/:id` | `/users/42` | `{ id: '42' }` |
+| `/files/*` | `/files/docs/readme.md` | `{ '*': 'docs/readme.md' }` |
+| `/repo/:owner/*` | `/repo/dashersw/src/index.ts` | `{ owner: 'dashersw', '*': 'src/index.ts' }` |
+
+### `RouterView`
+
+Renders the first matching route from a `routes` array. Observes `router.path` and swaps the rendered component when the URL changes.
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `routes` | `RouteConfig[]` | Array of `{ path, component }` objects. First match wins. |
+
+```jsx
+<RouterView routes={[
+  { path: '/', component: Home },
+  { path: '/about', component: About },
+  { path: '/users/:id', component: UserProfile },
+]} />
+```
+
+Both class components and function components are supported. Matched params are passed as props. Navigating between URLs that match the same pattern updates props instead of re-creating the component.
+
+### `Link`
+
+Renders an `<a>` tag for SPA navigation. Clicks call `router.navigate()` instead of triggering a full page reload.
+
+| Prop | Type | Required | Description |
+| --- | --- | --- | --- |
+| `to` | `string` | Yes | Target path |
+| `label` | `string` | Yes | Text content of the link |
+| `class` | `string` | No | CSS class(es) for the `<a>` tag |
+
+```jsx
+<Link to="/about" label="About" />
+<Link to="/users/1" label="Alice" class="nav-link" />
+```
+
+Modifier keys (Cmd, Ctrl, Shift, Alt) preserve native browser behavior (open in new tab, etc.).
+
+---
+
+## Gea Mobile
+
+### Import
+
+```js
+import { View, ViewManager, GestureHandler, Sidebar, TabView, NavBar, PullToRefresh, InfiniteScroll } from 'gea-mobile'
+```
+
+### View
+
+Full-screen `Component` rendering to `document.body` by default.
+
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| `index` | `number` | `0` | Z-axis position |
+| `supportsBackGesture` | `boolean` | `false` | Enable swipe-back |
+| `backGestureTouchTargetWidth` | `number` | `50` | Touch area width (px) |
+| `hasSidebar` | `boolean` | `false` | Allow sidebar reveal |
+
+| Method | Description |
+| --- | --- |
+| `onActivation()` | Called when the view becomes active in a ViewManager |
+| `panIn(isBeingPulled)` | Animate into viewport |
+| `panOut(isBeingPulled)` | Animate out of viewport |
+
+### ViewManager
+
+| Method | Description |
+| --- | --- |
+| `pull(view, canGoBack?)` | Navigate forward. `canGoBack` saves history. |
+| `push()` | Go back to previous view. |
+| `setCurrentView(view, noDispose?)` | Set active view without animation. |
+| `canGoBack()` | `true` if history exists. |
+| `toggleSidebar()` | Toggle sidebar. |
+| `getLastViewInHistory()` | Last view in the stack. |
+
+### GestureHandler
+
+Supported gestures: `tap`, `longTap`, `swipeRight`, `swipeLeft`, `swipeUp`, `swipeDown`.
+
+### UI Components
+
+| Component | Description |
+| --- | --- |
+| `Sidebar` | Slide-out navigation panel |
+| `TabView` | Tab-based view switching |
+| `NavBar` | Top navigation bar with back/menu buttons |
+| `PullToRefresh` | Pull-down-to-refresh (emits `SHOULD_REFRESH`) |
+| `InfiniteScroll` | Load-more-on-scroll (emits `SHOULD_LOAD`) |
+
+---
+
+## Project Setup
+
+### Vite Configuration
+
+```ts
+import { defineConfig } from 'vite'
+import { geaPlugin } from 'vite-plugin-gea'
+
+export default defineConfig({
+  plugins: [geaPlugin()]
+})
+```
+
+### Entry Point
+
+```ts
+import App from './app'
+import './styles.css'
+
+const app = new App()
+app.render(document.getElementById('app'))
+```
+
+### Scaffolding
+
+```bash
+npm create gea@latest my-app
+cd my-app
+npm install
+npm run dev
+```

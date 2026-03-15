@@ -1,0 +1,57 @@
+{
+  "name": "gea-mobile",
+  "version": "1.0.0",
+  "description": "Mobile-oriented UI primitives for the Gea framework — views, navigation, gestures, and layout components",
+  "main": "dist/index.mjs",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dashersw/gea.git"
+  },
+  "keywords": [
+    "gea",
+    "ui",
+    "components",
+    "mobile",
+    "navigation",
+    "gestures",
+    "sidebar",
+    "tabs",
+    "pull-to-refresh",
+    "infinite-scroll"
+  ],
+  "bugs": {
+    "url": "https://github.com/dashersw/gea/issues"
+  },
+  "homepage": "https://github.com/dashersw/gea#readme",
+  "scripts": {
+    "build:js": "tsup --config tsup.config.js",
+    "build:css": "node scripts/build-css.mjs",
+    "build": "npm run build:js && npm run build:css",
+    "prepare": "npm run build"
+  },
+  "author": "Armagan Amcalar <armagan@amcalar.com>",
+  "license": "MIT",
+  "sideEffects": [
+    "*.css",
+    "./src/setup.ts"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    },
+    "./style.css": "./dist/index.css",
+    "./dist/gea-mobile.css": "./dist/gea-mobile.css"
+  },
+  "peerDependencies": {
+    "gea": "^1.0.0"
+  },
+  "devDependencies": {
+    "lightningcss": "^1.32.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

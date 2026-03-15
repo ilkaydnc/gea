@@ -1,0 +1,57 @@
+{
+  "name": "gea-syntax",
+  "displayName": "Gea JSX Tools",
+  "description": "Code completion and language support for Gea JSX components",
+  "version": "1.0.0",
+  "publisher": "gea",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./out/client.js",
+  "contributes": {
+    "typescriptServerPlugins": [
+      {
+        "name": "gea-template-plugin",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
+    ],
+    "configuration": {
+      "title": "Gea Language Server",
+      "properties": {
+        "gea.languageServer.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Gea language server features"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.8",
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.60.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dashersw/gea"
+  },
+  "license": "MIT"
+}

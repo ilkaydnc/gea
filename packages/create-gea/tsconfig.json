@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": false,
+    "noEmit": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "jsx": "preserve"
+  },
+  "include": [
+    "template/src/**/*.ts",
+    "template/src/**/*.tsx",
+    "template/src/**/*.d.ts",
+    "template/vite.config.ts",
+    "test/**/*.js",
+    "bin/**/*.js"
+  ],
+  "exclude": ["dist", "node_modules"]
+}

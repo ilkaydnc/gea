@@ -1,0 +1,24 @@
+{
+  "extends": "../../packages/gea/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "gea": [
+        "../../packages/gea/src"
+      ],
+      "gea-mobile": [
+        "../../packages/gea-mobile/src"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "vite.config.ts",
+    ".//Users/dashersw/Projects/Code/github/dashersw/gea/packages/vite-plugin-gea/gea-env.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

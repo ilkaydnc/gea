@@ -1,0 +1,1307 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gea — Lightweight Reactive UI Framework</title>
+    <meta
+      name="description"
+      content="A lightweight, reactive JavaScript UI framework with compile-time JSX and proxy-based stores. No virtual DOM. ~10 kb gzipped."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Audiowide&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --cyan: #00e5ff;
+        --magenta: #e91eff;
+        --pink: #ff2d95;
+        --deep-purple: #0a0a1a;
+        --space: #0d0d24;
+        --nebula: #1a0a2e;
+        --star: #c8b6ff;
+        --text: #e0dff5;
+        --text-dim: #8888aa;
+        --glow-cyan: 0 0 20px rgba(0, 229, 255, 0.4), 0 0 60px rgba(0, 229, 255, 0.15);
+        --glow-magenta: 0 0 20px rgba(233, 30, 255, 0.4), 0 0 60px rgba(233, 30, 255, 0.15);
+      }
+
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: 'Exo 2', sans-serif;
+        background: var(--deep-purple);
+        color: var(--text);
+        overflow-x: hidden;
+        line-height: 1.6;
+      }
+
+      /* ── Stars background ── */
+      .stars {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .stars canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ── Navigation ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 3rem;
+        background: rgba(10, 10, 26, 0.8);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        transition: background 0.3s;
+      }
+
+      nav .logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      nav .logo-img {
+        height: 36px;
+        width: auto;
+      }
+
+      nav .links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      nav .links a {
+        color: var(--text-dim);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1.05rem;
+        letter-spacing: 0.05em;
+        transition: color 0.3s;
+      }
+
+      nav .links a:hover {
+        color: var(--cyan);
+      }
+
+      nav .cta-btn {
+        padding: 0.5rem 1.5rem;
+        border: 1px solid var(--cyan);
+        border-radius: 4px;
+        color: var(--cyan);
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+
+      nav .cta-btn:hover {
+        background: rgba(0, 229, 255, 0.1);
+        color: #fff;
+        border-color: #fff;
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+      }
+
+      /* ── Sections ── */
+      section {
+        position: relative;
+        z-index: 1;
+        padding: 8rem 3rem 4rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding-top: 6rem;
+      }
+
+      .hero-logo {
+        width: min(600px, 90vw);
+        margin-bottom: 2rem;
+        animation: float 6s ease-in-out infinite;
+        filter: drop-shadow(0 0 40px rgba(0, 229, 255, 0.3));
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-12px);
+        }
+      }
+
+      .hero h1 {
+        font-family: 'Audiowide', sans-serif;
+        font-size: clamp(1.4rem, 3.5vw, 2.6rem);
+        font-weight: 400;
+        color: var(--text);
+        letter-spacing: 0.08em;
+        max-width: 800px;
+        margin-bottom: 1.5rem;
+      }
+
+      .hero h1 strong {
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--cyan), var(--magenta));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero .tagline {
+        font-size: 1.25rem;
+        color: var(--text-dim);
+        max-width: 640px;
+        margin-bottom: 3rem;
+        line-height: 1.8;
+      }
+
+      .hero .tagline em {
+        color: var(--cyan);
+        font-style: normal;
+        font-weight: 600;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 2.5rem;
+        background: linear-gradient(135deg, var(--cyan), var(--magenta));
+        color: #fff;
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-decoration: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 0 30px rgba(0, 229, 255, 0.25);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        color: #fff;
+        filter: brightness(1.15);
+        box-shadow:
+          0 0 30px rgba(0, 229, 255, 0.3),
+          0 0 60px rgba(233, 30, 255, 0.15);
+      }
+
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 2.5rem;
+        background: transparent;
+        color: var(--text);
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(233, 30, 255, 0.08);
+        border-color: var(--magenta);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(233, 30, 255, 0.25);
+        transform: translateY(-2px);
+      }
+
+      .hero-stats {
+        display: flex;
+        gap: 3rem;
+        margin-top: 4rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: 'Audiowide', sans-serif;
+        font-size: 2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--cyan), var(--magenta));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 0.25rem;
+      }
+
+      /* ── Section headings ── */
+      .section-label {
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--magenta);
+        margin-bottom: 1rem;
+      }
+
+      .section-title {
+        font-family: 'Audiowide', sans-serif;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 900;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+      }
+
+      .section-title .gradient {
+        background: linear-gradient(135deg, var(--cyan), var(--magenta));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .section-subtitle {
+        font-size: 1.15rem;
+        color: var(--text-dim);
+        max-width: 600px;
+        line-height: 1.8;
+        margin-bottom: 3rem;
+      }
+
+      /* ── Philosophy ── */
+      .philosophy {
+        padding-top: 2rem;
+      }
+
+      .philosophy-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .philosophy-card {
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.03), rgba(233, 30, 255, 0.03));
+        border: 1px solid rgba(0, 229, 255, 0.08);
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+        transition: all 0.4s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .philosophy-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--cyan), var(--magenta));
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .philosophy-card:hover::before {
+        opacity: 1;
+      }
+
+      .philosophy-card:hover {
+        border-color: rgba(0, 229, 255, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .philosophy-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1.2rem;
+        display: block;
+      }
+
+      .philosophy-card h3 {
+        font-family: 'Audiowide', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--cyan);
+      }
+
+      .philosophy-card p {
+        color: var(--text-dim);
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      /* ── Code showcase ── */
+      .code-showcase {
+        padding-top: 2rem;
+      }
+
+      .code-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 0;
+      }
+
+      .code-tab {
+        padding: 0.75rem 1.8rem;
+        background: rgba(0, 229, 255, 0.04);
+        border: 1px solid rgba(0, 229, 255, 0.1);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        color: var(--text-dim);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .code-tab.active {
+        background: rgba(0, 229, 255, 0.08);
+        color: var(--cyan);
+        border-color: rgba(0, 229, 255, 0.2);
+      }
+
+      .code-tab:hover:not(.active) {
+        color: var(--text);
+      }
+
+      .code-panels {
+        position: relative;
+      }
+
+      .code-panel {
+        display: none;
+        background: rgba(13, 13, 36, 0.9);
+        border: 1px solid rgba(0, 229, 255, 0.1);
+        border-radius: 0 12px 12px 12px;
+        padding: 2rem;
+        overflow-x: auto;
+      }
+
+      .code-panel.active {
+        display: block;
+      }
+
+      pre {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.9rem;
+        line-height: 1.75;
+        color: var(--text);
+      }
+
+      .kw {
+        color: var(--magenta);
+      }
+      .fn {
+        color: var(--cyan);
+      }
+      .str {
+        color: #ffd866;
+      }
+      .cm {
+        color: #5a5a7a;
+      }
+      .num {
+        color: #ff9e64;
+      }
+      .op {
+        color: var(--text-dim);
+      }
+      .tag {
+        color: var(--pink);
+      }
+      .attr {
+        color: var(--cyan);
+      }
+      .brk {
+        color: var(--text-dim);
+      }
+      .cls {
+        color: #c8b6ff;
+      }
+
+      /* ── Performance ── */
+      .performance {
+        padding-top: 2rem;
+      }
+
+      .benchmark-container {
+        background: rgba(13, 13, 36, 0.6);
+        border: 1px solid rgba(0, 229, 255, 0.08);
+        border-radius: 16px;
+        padding: 3rem;
+        margin-top: 2rem;
+      }
+
+      .benchmark-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .benchmark-label {
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        width: 140px;
+        text-align: right;
+        flex-shrink: 0;
+        letter-spacing: 0.05em;
+      }
+
+      .benchmark-bar-track {
+        flex: 1;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .benchmark-bar {
+        height: 100%;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 1rem;
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--deep-purple);
+        transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        width: 0;
+      }
+
+      .benchmark-bar.vanilla {
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.3));
+        color: var(--text);
+      }
+
+      .benchmark-bar.solid {
+        background: linear-gradient(90deg, #4488ff, #6699ff);
+      }
+
+      .benchmark-bar.svelte {
+        background: linear-gradient(90deg, #ff3e00, #ff6633);
+      }
+
+      .benchmark-bar.gea {
+        background: linear-gradient(90deg, var(--cyan), var(--magenta));
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+      }
+
+      .benchmark-bar.vue {
+        background: linear-gradient(90deg, #42b883, #35a06e);
+      }
+
+      .benchmark-bar.react {
+        background: linear-gradient(90deg, #61dafb, #4fa8c9);
+      }
+
+      .benchmark-label.is-gea {
+        color: var(--cyan);
+      }
+
+      .benchmark-note {
+        margin-top: 2rem;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+      }
+
+      .benchmark-note a {
+        color: var(--cyan);
+        text-decoration: none;
+      }
+
+      .benchmark-note a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Features grid ── */
+      .features {
+        padding-top: 2rem;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .feature-card {
+        background: rgba(0, 229, 255, 0.02);
+        border: 1px solid rgba(0, 229, 255, 0.06);
+        border-radius: 10px;
+        padding: 2rem 1.5rem;
+        transition: all 0.3s;
+      }
+
+      .feature-card:hover {
+        border-color: rgba(233, 30, 255, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .feature-card h3 {
+        font-family: 'Audiowide', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.05em;
+      }
+
+      .feature-card p {
+        font-size: 0.95rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+
+      /* ── Quick start ── */
+      .quickstart {
+        padding-top: 2rem;
+      }
+
+      .quickstart-box {
+        background: rgba(13, 13, 36, 0.8);
+        border: 1px solid rgba(0, 229, 255, 0.12);
+        border-radius: 12px;
+        padding: 2.5rem 3rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .quickstart-box::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.06) 0%, transparent 60%);
+        pointer-events: none;
+      }
+
+      .quickstart-cmd {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 1.3rem;
+        color: var(--cyan);
+        margin: 1.5rem 0 0.5rem;
+        padding: 1rem 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        display: inline-block;
+        border: 1px solid rgba(0, 229, 255, 0.15);
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        z-index: 1;
+      }
+
+      .quickstart-cmd:hover {
+        border-color: var(--cyan);
+        box-shadow: var(--glow-cyan);
+      }
+
+      .quickstart-cmd .dollar {
+        color: var(--magenta);
+        margin-right: 0.5rem;
+      }
+
+      .quickstart-hint {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── CTA ── */
+      .final-cta {
+        text-align: center;
+        padding: 6rem 3rem 8rem;
+      }
+
+      .final-cta .section-title {
+        margin-bottom: 1.5rem;
+      }
+
+      .final-cta p {
+        color: var(--text-dim);
+        font-size: 1.15rem;
+        max-width: 500px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.7;
+      }
+
+      .final-cta-actions {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* ── Footer ── */
+      footer {
+        position: relative;
+        z-index: 1;
+        border-top: 1px solid rgba(0, 229, 255, 0.06);
+        padding: 3rem;
+        text-align: center;
+      }
+
+      footer p {
+        color: var(--text-dim);
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--cyan);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Divider ── */
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.15), rgba(233, 30, 255, 0.15), transparent);
+        margin: 2rem auto;
+        max-width: 1200px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 768px) {
+        nav {
+          padding: 1rem 1.5rem;
+        }
+        nav .links {
+          gap: 1rem;
+        }
+        nav .links a {
+          font-size: 0.9rem;
+        }
+        section {
+          padding: 6rem 1.5rem 3rem;
+        }
+        .hero {
+          padding-top: 4rem;
+        }
+        .hero-stats {
+          gap: 2rem;
+        }
+        .benchmark-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .benchmark-label {
+          width: auto;
+          text-align: left;
+        }
+        .quickstart-box {
+          padding: 2rem 1.5rem;
+        }
+        .quickstart-cmd {
+          font-size: 1rem;
+          padding: 0.8rem 1.2rem;
+        }
+        .benchmark-container {
+          padding: 2rem 1.5rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        nav .links a:not(.cta-btn) {
+          display: none;
+        }
+        .hero h1 {
+          font-size: 1.2rem;
+        }
+        .code-tab {
+          padding: 0.5rem 1rem;
+          font-size: 0.75rem;
+        }
+      }
+
+      /* ── Scroll reveal ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition:
+          opacity 0.8s ease,
+          transform 0.8s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Neon pulse ── */
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.3));
+        }
+        50% {
+          filter: drop-shadow(0 0 40px rgba(233, 30, 255, 0.4));
+        }
+      }
+
+      /* ── Mobile nav toggle ── */
+      .nav-toggle {
+        display: none;
+      }
+
+      @media (max-width: 480px) {
+        .nav-toggle {
+          display: block;
+          background: none;
+          border: none;
+          cursor: pointer;
+        }
+        .nav-toggle span {
+          display: block;
+          width: 24px;
+          height: 2px;
+          background: var(--cyan);
+          margin: 5px 0;
+          transition: 0.3s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stars"><canvas id="starfield"></canvas></div>
+
+    <nav>
+      <a href="/" class="logo"><img src="logo-transparent.png" alt="Gea" class="logo-img" /></a>
+      <div class="links">
+        <a href="#philosophy">Philosophy</a>
+        <a href="#code">Code</a>
+        <a href="#performance">Performance</a>
+        <a href="#features">Features</a>
+        <a href="docs/" class="cta-btn">DOCS</a>
+        <a href="https://github.com/dashersw/gea" class="cta-btn" target="_blank" rel="noopener">GITHUB</a>
+      </div>
+    </nav>
+
+    <!-- ── Hero ── -->
+    <section class="hero">
+      <img src="logo-transparent.png" alt="Gea" class="hero-logo" />
+      <h1><strong>Write JavaScript.</strong><br />Get reactivity for free.</h1>
+      <p class="tagline">
+        A compile-time UI framework that turns <em>ordinary classes and functions</em>
+        into surgical DOM updates. No virtual DOM. No hooks. No signals. Just your code — made reactive at build time.
+      </p>
+      <div class="hero-actions">
+        <a href="#quickstart" class="btn-primary">GET STARTED</a>
+        <a href="https://github.com/dashersw/gea" class="btn-secondary" target="_blank" rel="noopener"
+          >VIEW ON GITHUB</a
+        >
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-value">~10 kb</div>
+          <div class="stat-label">Gzipped</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0</div>
+          <div class="stat-label">Runtime Deps</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">1.17</div>
+          <div class="stat-label">Benchmark Score</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Philosophy ── -->
+    <section class="philosophy reveal" id="philosophy">
+      <div class="section-label">Philosophy</div>
+      <h2 class="section-title">JavaScript is <span class="gradient">enough</span></h2>
+      <p class="section-subtitle">
+        No new primitives to learn. Stores are classes. Components are classes or functions. Computed values are
+        getters. The compiler does the rest.
+      </p>
+      <div class="philosophy-grid">
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x1F331;</span>
+          <h3>Zero Concepts</h3>
+          <p>
+            No signals, hooks, dependency arrays, or compiler directives. You already know the entire API — it's just
+            JavaScript classes and functions.
+          </p>
+        </div>
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x26A1;</span>
+          <h3>Compile-Time Reactivity</h3>
+          <p>
+            The Vite plugin analyzes your JSX at build time, figures out which DOM nodes depend on which state, and
+            wires up surgical patches — invisibly.
+          </p>
+        </div>
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x1F3AF;</span>
+          <h3>No Virtual DOM</h3>
+          <p>
+            Updates go straight to the elements that changed. No diffing, no reconciliation, no overhead. Just direct
+            DOM mutations, generated at compile time.
+          </p>
+        </div>
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x1F9EC;</span>
+          <h3>Proxy-Based Stores</h3>
+          <p>
+            State lives in ordinary classes wrapped by a deep Proxy. Mutate properties directly — array methods, nested
+            objects, everything just works.
+          </p>
+        </div>
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x1F4E6;</span>
+          <h3>Tiny Footprint</h3>
+          <p>
+            ~10 kb gzipped with zero runtime dependencies. The heavy lifting happens at build time, not in the browser.
+          </p>
+        </div>
+        <div class="philosophy-card">
+          <span class="philosophy-icon">&#x1F6E0;&#xFE0F;</span>
+          <h3>Full Toolkit</h3>
+          <p>
+            Built-in client-side router, mobile UI primitives, VS Code extension, and a project scaffolder. Everything
+            you need, nothing you don't.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Code showcase ── -->
+    <section class="code-showcase reveal" id="code">
+      <div class="section-label">Code</div>
+      <h2 class="section-title">This is <span class="gradient">all you write</span></h2>
+      <p class="section-subtitle">
+        Stores are classes with state and methods. Components return JSX. The compiler makes it reactive.
+      </p>
+
+      <div class="code-tabs">
+        <button class="code-tab active" data-tab="store">store.ts</button>
+        <button class="code-tab" data-tab="component">Counter.tsx</button>
+        <button class="code-tab" data-tab="app">app.tsx</button>
+      </div>
+      <div class="code-panels">
+        <div class="code-panel active" data-tab="store">
+          <pre><span class="kw">import</span> { <span class="cls">Store</span> } <span class="kw">from</span> <span class="str">'gea'</span>
+
+<span class="kw">class</span> <span class="cls">CounterStore</span> <span class="kw">extends</span> <span class="cls">Store</span> {
+  <span class="fn">count</span> <span class="op">=</span> <span class="num">0</span>
+
+  <span class="fn">increment</span>() { <span class="kw">this</span>.count<span class="op">++</span> }
+  <span class="fn">decrement</span>() { <span class="kw">this</span>.count<span class="op">--</span> }
+}
+
+<span class="kw">export default new</span> <span class="cls">CounterStore</span>()</pre>
+        </div>
+        <div class="code-panel" data-tab="component">
+          <pre><span class="kw">import</span> { <span class="cls">Component</span> } <span class="kw">from</span> <span class="str">'gea'</span>
+<span class="kw">import</span> <span class="fn">store</span> <span class="kw">from</span> <span class="str">'./store'</span>
+
+<span class="kw">export default class</span> <span class="cls">Counter</span> <span class="kw">extends</span> <span class="cls">Component</span> {
+  <span class="fn">template</span>() {
+    <span class="kw">return</span> (
+      <span class="tag">&lt;div</span> <span class="attr">class</span><span class="op">=</span><span class="str">"counter"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;span&gt;</span>{store.count}<span class="tag">&lt;/span&gt;</span>
+        <span class="tag">&lt;button</span> <span class="attr">click</span><span class="op">=</span>{store.increment}<span class="tag">&gt;</span>+<span class="tag">&lt;/button&gt;</span>
+        <span class="tag">&lt;button</span> <span class="attr">click</span><span class="op">=</span>{store.decrement}<span class="tag">&gt;</span>-<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    )
+  }
+}</pre>
+        </div>
+        <div class="code-panel" data-tab="app">
+          <pre><span class="kw">import</span> <span class="cls">Counter</span> <span class="kw">from</span> <span class="str">'./Counter'</span>
+
+<span class="kw">const</span> <span class="fn">app</span> <span class="op">=</span> <span class="kw">new</span> <span class="cls">Counter</span>()
+<span class="fn">app</span>.<span class="fn">render</span>(document.<span class="fn">getElementById</span>(<span class="str">'app'</span>))</pre>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Performance ── -->
+    <section class="performance reveal" id="performance">
+      <div class="section-label">Performance</div>
+      <h2 class="section-title">Near–<span class="gradient">vanilla JS</span> speed, unmatched DX</h2>
+      <p class="section-subtitle">
+        Benchmarked with the js-framework-benchmark suite — the standard stress test for UI frameworks.
+      </p>
+
+      <div class="benchmark-container">
+        <div class="benchmark-row">
+          <div class="benchmark-label">vanillajs</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar vanilla" data-width="68">1.00</div>
+          </div>
+        </div>
+        <div class="benchmark-row">
+          <div class="benchmark-label">Solid 1.9</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar solid" data-width="74">1.10</div>
+          </div>
+        </div>
+        <div class="benchmark-row">
+          <div class="benchmark-label">Svelte 5</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar svelte" data-width="76">1.12</div>
+          </div>
+        </div>
+        <div class="benchmark-row">
+          <div class="benchmark-label is-gea">Gea 1.0</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar gea" data-width="79">1.17</div>
+          </div>
+        </div>
+        <div class="benchmark-row">
+          <div class="benchmark-label">Vue 3.6</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar vue" data-width="86">1.27</div>
+          </div>
+        </div>
+        <div class="benchmark-row">
+          <div class="benchmark-label">React 19.2</div>
+          <div class="benchmark-bar-track">
+            <div class="benchmark-bar react" data-width="100">1.48</div>
+          </div>
+        </div>
+        <p class="benchmark-note">
+          Lower is better (1.00 = fastest). Weighted geometric mean from
+          <a href="https://github.com/nicosommi/js-framework-benchmark" target="_blank" rel="noopener"
+            >js-framework-benchmark</a
+          >.
+        </p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Features ── -->
+    <section class="features reveal" id="features">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need, <span class="gradient">nothing you don't</span></h2>
+      <p class="section-subtitle">
+        A complete toolkit for building modern web applications, from single components to full SPAs.
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3>Class Components</h3>
+          <p>Extend Component, add local reactive state, implement template(). OOP the way it was meant to be.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Function Components</h3>
+          <p>Export a function that returns JSX. Converted to a class component at build time — zero overhead.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Client-Side Router</h3>
+          <p>Built-in RouterView, Link, route params, wildcards, and programmatic navigation. No extra packages.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Event Delegation</h3>
+          <p>All event handlers compile to a single delegated listener per event type. Efficient by default.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Fine-Grained Arrays</h3>
+          <p>
+            Array methods like push, splice, sort produce granular change events — append, reorder, swap — not full
+            rerenders.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h3>Gea Mobile</h3>
+          <p>
+            ViewManager, sidebar, tab views, pull-to-refresh, infinite scroll, swipe gestures — all iOS-style smooth.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h3>HMR Support</h3>
+          <p>The Vite plugin provides hot module replacement. Edit a store or component and see it update instantly.</p>
+        </div>
+        <div class="feature-card">
+          <h3>VS Code Extension</h3>
+          <p>
+            Component completion, prop inference, event attribute hints, hover details, and unknown component warnings.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Quick Start ── -->
+    <section class="quickstart reveal" id="quickstart">
+      <div class="section-label">Quick Start</div>
+      <h2 class="section-title">Up and running in <span class="gradient">seconds</span></h2>
+      <div class="quickstart-box">
+        <p class="section-subtitle" style="margin: 0 auto 0.5rem; max-width: 500px">
+          One command scaffolds a Vite project with TypeScript, stores, components, and the plugin pre-configured.
+        </p>
+        <div class="quickstart-cmd" id="copy-cmd" title="Click to copy">
+          <span class="dollar">$</span>npm create gea@latest my-app
+        </div>
+        <p class="quickstart-hint" id="copy-hint">Click to copy</p>
+      </div>
+    </section>
+
+    <!-- ── Final CTA ── -->
+    <section class="final-cta reveal">
+      <h2 class="section-title">Ready to <span class="gradient">grow</span>?</h2>
+      <p>Gea is MIT licensed and open source. Jump in, explore the docs, and build something beautiful.</p>
+      <div class="final-cta-actions">
+        <a href="https://github.com/dashersw/gea" class="btn-primary" target="_blank" rel="noopener">STAR ON GITHUB</a>
+        <a href="https://www.npmjs.com/package/gea" class="btn-secondary" target="_blank" rel="noopener">VIEW ON NPM</a>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        MIT License &mdash; Created by
+        <a href="https://github.com/dashersw" target="_blank" rel="noopener">Armagan Amcalar</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://github.com/dashersw/gea" target="_blank" rel="noopener">GitHub</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://www.npmjs.com/package/gea" target="_blank" rel="noopener">npm</a>
+      </p>
+    </footer>
+
+    <script>
+      // ── Starfield ──
+      ;(function () {
+        const canvas = document.getElementById('starfield')
+        const ctx = canvas.getContext('2d')
+        let w,
+          h,
+          stars,
+          shooters = []
+
+        function resize() {
+          w = canvas.width = window.innerWidth
+          h = canvas.height = window.innerHeight
+        }
+
+        function createStars(count) {
+          stars = []
+          for (let i = 0; i < count; i++) {
+            stars.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              r: Math.random() * 1.8 + 0.2,
+              a: Math.random(),
+              da: (Math.random() * 0.03 + 0.005) * (Math.random() < 0.5 ? 1 : -1),
+              dx: (Math.random() - 0.5) * 0.15,
+              dy: (Math.random() - 0.5) * 0.08,
+              hue: Math.random() < 0.3 ? 280 : Math.random() < 0.5 ? 190 : 240,
+            })
+          }
+        }
+
+        function spawnShooter() {
+          shooters.push({
+            x: Math.random() * w * 0.8,
+            y: Math.random() * h * 0.4,
+            vx: 4 + Math.random() * 4,
+            vy: 1.5 + Math.random() * 2,
+            life: 1,
+            len: 40 + Math.random() * 60,
+          })
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, w, h)
+
+          for (const s of stars) {
+            s.a += s.da
+            if (s.a >= 1) {
+              s.a = 1
+              s.da = -(Math.random() * 0.03 + 0.005)
+            }
+            if (s.a <= 0.05) {
+              s.a = 0.05
+              s.da = Math.random() * 0.03 + 0.005
+            }
+            s.x += s.dx
+            s.y += s.dy
+            if (s.x < -5) s.x = w + 5
+            if (s.x > w + 5) s.x = -5
+            if (s.y < -5) s.y = h + 5
+            if (s.y > h + 5) s.y = -5
+
+            ctx.beginPath()
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+            ctx.fillStyle = `hsla(${s.hue}, 60%, 85%, ${s.a})`
+            ctx.fill()
+
+            if (s.r > 1.2 && s.a > 0.6) {
+              ctx.beginPath()
+              ctx.arc(s.x, s.y, s.r * 2.5, 0, Math.PI * 2)
+              ctx.fillStyle = `hsla(${s.hue}, 80%, 75%, ${s.a * 0.12})`
+              ctx.fill()
+            }
+          }
+
+          for (let i = shooters.length - 1; i >= 0; i--) {
+            const sh = shooters[i]
+            sh.x += sh.vx
+            sh.y += sh.vy
+            sh.life -= 0.015
+            if (sh.life <= 0) {
+              shooters.splice(i, 1)
+              continue
+            }
+            const tailX = sh.x - sh.vx * (sh.len / sh.vx)
+            const tailY = sh.y - sh.vy * (sh.len / sh.vx)
+            const grad = ctx.createLinearGradient(sh.x, sh.y, tailX, tailY)
+            grad.addColorStop(0, `rgba(0, 229, 255, ${sh.life * 0.9})`)
+            grad.addColorStop(0.4, `rgba(233, 30, 255, ${sh.life * 0.5})`)
+            grad.addColorStop(1, 'rgba(233, 30, 255, 0)')
+            ctx.beginPath()
+            ctx.moveTo(sh.x, sh.y)
+            ctx.lineTo(tailX, tailY)
+            ctx.strokeStyle = grad
+            ctx.lineWidth = 1.5
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.arc(sh.x, sh.y, 2, 0, Math.PI * 2)
+            ctx.fillStyle = `rgba(255, 255, 255, ${sh.life})`
+            ctx.fill()
+          }
+
+          if (Math.random() < 0.004) spawnShooter()
+          requestAnimationFrame(draw)
+        }
+
+        resize()
+        createStars(250)
+        draw()
+        window.addEventListener('resize', () => {
+          resize()
+          createStars(250)
+        })
+      })()
+
+      // ── Code tabs ──
+      document.querySelectorAll('.code-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.tab
+          document.querySelectorAll('.code-tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === target))
+          document
+            .querySelectorAll('.code-panel')
+            .forEach((p) => p.classList.toggle('active', p.dataset.tab === target))
+        })
+      })
+
+      // ── Copy command ──
+      document.getElementById('copy-cmd').addEventListener('click', function () {
+        navigator.clipboard.writeText('npm create gea@latest my-app').then(() => {
+          const hint = document.getElementById('copy-hint')
+          hint.textContent = 'Copied!'
+          hint.style.color = '#00e5ff'
+          setTimeout(() => {
+            hint.textContent = 'Click to copy'
+            hint.style.color = ''
+          }, 2000)
+        })
+      })
+
+      // ── Scroll reveal ──
+      const observer = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add('visible')
+          }),
+        { threshold: 0.1 },
+      )
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
+
+      // ── Benchmark bar animation ──
+      const benchObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.querySelectorAll('.benchmark-bar').forEach((bar) => {
+                bar.style.width = bar.dataset.width + '%'
+              })
+            }
+          })
+        },
+        { threshold: 0.2 },
+      )
+      document.querySelectorAll('.benchmark-container').forEach((el) => benchObserver.observe(el))
+    </script>
+  </body>
+</html>
