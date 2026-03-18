@@ -1,0 +1,45 @@
+{
+  "name": "gea-router",
+  "version": "1.0.0",
+  "description": "Store-based router for Gea — nested routes, layouts, guards, lazy loading",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsdown",
+    "prepare": "npm run build",
+    "test": "tsx --test tests/**/*.test.ts",
+    "test:coverage": "c8 --reporter=text --reporter=lcov tsx --test tests/**/*.test.ts"
+  },
+  "author": "Armagan Amcalar <armagan@amcalar.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dashersw/gea.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dashersw/gea/issues"
+  },
+  "homepage": "https://github.com/dashersw/gea#readme",
+  "keywords": ["gea", "router", "spa", "store", "reactive"],
+  "peerDependencies": {
+    "gea": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "c8": "^11.0.0",
+    "jsdom": "^29.0.0",
+    "tsdown": "^0.21.2",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.0"
+  }
+}

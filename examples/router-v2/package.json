@@ -1,0 +1,19 @@
+{
+  "name": "router-v2-gea",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "gea": "file:../../packages/gea",
+    "gea-router": "file:../../packages/gea-router"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-gea": "file:../../packages/vite-plugin-gea",
+    "typescript": "~5.8.0"
+  }
+}

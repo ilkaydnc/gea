@@ -194,6 +194,9 @@ function reRenderComponent(instance) {
   if (!instance.__selfListeners) instance.__selfListeners = [];
   if (!instance.__childComponents) instance.__childComponents = [];
   instance.render(parent, index);
+  if (typeof instance.createdHooks === 'function') {
+    instance.createdHooks(instance.props);
+  }
 }
 
 export function handleComponentUpdate(moduleId, newModule) {
@@ -235,6 +238,14 @@ export function handleComponentUpdate(moduleId, newModule) {
 }
 `
 
+function isComponentImportSource(source: string): boolean {
+  if (source.startsWith('.')) return true
+  // Skip Node built-ins and known non-component packages
+  if (source.startsWith('node:')) return false
+  // Package imports — could contain Gea components
+  return true
+}
+
 export function geaPlugin(): Plugin {
   const storeModules = new Set<string>()
 
@@ -264,9 +275,16 @@ export function geaPlugin(): Plugin {
     if (!existsSync(filePath)) return false
     try {
       const source = readFileSync(filePath, 'utf8')
-      const matchesStore = source.includes('extends Store') || source.includes('new Store(')
-      if (matchesStore) storeModules.add(filePath)
-      return matchesStore
+      if (source.includes('extends Store') || source.includes('new Store(')) {
+        storeModules.add(filePath)
+        return true
+      }
+      // Files that import from gea-router and instantiate Router (Router extends Store)
+      if (/from\s+['"]gea-router['"]/.test(source) && /new\s+Router\b/.test(source)) {
+        storeModules.add(filePath)
+        return true
+      }
+      return false
     } catch {
       return false
     }
@@ -345,28 +363,49 @@ export function geaPlugin(): Plugin {
         let isDefaultExport = false
 
         imports.forEach((source) => {
-          if (!source.startsWith('.')) return
+          if (!isComponentImportSource(source)) return
           componentImportSet.add(source)
         })
         const componentImports = Array.from(componentImportSet)
 
         const storeImports = new Map<string, string>()
+        const namedImportSources = new Map<string, string>()
         traverse(ast, {
           ExportDefaultDeclaration() {
             isDefaultExport = true
           },
           ImportDeclaration(path) {
             const source = path.node.source.value
-            if (!source.startsWith('.')) return
-            const resolvedImport = resolveImportPath(cleanId, source)
+            if (!isComponentImportSource(source)) return
+            const resolvedImport = source.startsWith('.') ? resolveImportPath(cleanId, source) : null
             path.node.specifiers.forEach(
               (spec: { type: string; imported?: { name?: string }; local: { name: string } }) => {
                 if (spec.type === 'ImportDefaultSpecifier') {
                   if (resolvedImport && !isStoreModule(resolvedImport)) return
                   storeImports.set(spec.local.name, source)
+                } else if (spec.type === 'ImportSpecifier') {
+                  namedImportSources.set(spec.local.name, source)
+                  if (resolvedImport && isStoreModule(resolvedImport)) {
+                    storeImports.set(spec.local.name, source)
+                  } else if (!resolvedImport && source === 'gea-router' && /^[a-z]/.test(spec.local.name)) {
+                    storeImports.set(spec.local.name, source)
+                  }
                 }
               },
             )
+          },
+          VariableDeclarator(path: any) {
+            const init = path.node.init
+            if (
+              init &&
+              init.type === 'NewExpression' &&
+              init.callee?.type === 'Identifier' &&
+              namedImportSources.has(init.callee.name) &&
+              path.node.id?.type === 'Identifier'
+            ) {
+              const source = namedImportSources.get(init.callee.name)!
+              storeImports.set(path.node.id.name, source)
+            }
           },
         })
 

@@ -13,6 +13,16 @@
 - [Computed Values](core-concepts/computed-values.md)
 - [Router](core-concepts/router.md)
 
+## Gea Router
+
+- [Overview](gea-router/overview.md)
+- [Getting Started](gea-router/getting-started.md)
+- [Route Configuration](gea-router/route-config.md)
+- [Navigation](gea-router/navigation.md)
+- [Layouts](gea-router/layouts.md)
+- [Guards](gea-router/guards.md)
+- [Type Safety](gea-router/type-safety.md)
+
 ## Gea Mobile
 
 - [Overview](gea-mobile/overview.md)

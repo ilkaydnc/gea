@@ -141,6 +141,16 @@ function collectExpressionDependenciesInto(
       if (parent && t.isMemberExpression(parent.node) && parent.node.object === path.node) return
       const resolved = resolvePath(path.node, stateRefs)
       if (!resolved?.parts?.length) return
+
+      const isMethodCall = parent && t.isCallExpression(parent.node) && parent.node.callee === path.node
+      if (isMethodCall && resolved.isImportedState && resolved.storeVar) {
+        const ref = stateRefs?.get(resolved.storeVar)
+        if (ref && !ref.reactiveFields) {
+          addDependency([], resolved.storeVar)
+          return
+        }
+      }
+
       const parts =
         resolved.parts.length >= 2 && resolved.parts[resolved.parts.length - 1] === 'length'
           ? resolved.parts.slice(0, -1)

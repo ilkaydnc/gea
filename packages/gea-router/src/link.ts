@@ -1,0 +1,66 @@
+import { Component } from 'gea'
+
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+
+export default class Link extends Component {
+  static _router: any = null
+
+  private _clickHandler: ((e: MouseEvent) => void) | null = null
+  private _observerRemover: (() => void) | null = null
+
+  template(props: { to: string; replace?: boolean; class?: string; label?: string }) {
+    const cls = props.class ? ` class="${escapeAttr(props.class)}"` : ''
+    const label = props.label || ''
+    return `<a id="${this.id}" href="${escapeAttr(props.to)}"${cls}>${label}</a>` as any
+  }
+
+  onAfterRender() {
+    const el = this.el as HTMLAnchorElement
+    if (!el) return
+
+    this._clickHandler = (e: MouseEvent) => {
+      const to = this.props.to
+      if (!to) return
+      if (to.startsWith('http://') || to.startsWith('https://')) return
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      e.preventDefault()
+      const router = Link._router
+      if (router) {
+        this.props.replace ? router.replace(to) : router.push(to)
+      }
+    }
+    el.addEventListener('click', this._clickHandler)
+
+    const router = Link._router
+    if (router) {
+      this._updateActive(router)
+      this._observerRemover = router.observe('path', () => this._updateActive(router))
+    }
+  }
+
+  private _updateActive(router: any): void {
+    const el = this.el as HTMLAnchorElement
+    if (!el) return
+    const to = this.props.to
+    const active = this.props.exact ? router.isExact(to) : router.isActive(to)
+    if (active) {
+      el.setAttribute('data-active', '')
+    } else {
+      el.removeAttribute('data-active')
+    }
+  }
+
+  dispose() {
+    if (this._clickHandler && this.el) {
+      this.el.removeEventListener('click', this._clickHandler)
+      this._clickHandler = null
+    }
+    if (this._observerRemover) {
+      this._observerRemover()
+      this._observerRemover = null
+    }
+    super.dispose()
+  }
+}
